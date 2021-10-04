@@ -1,41 +1,85 @@
+import 'package:udcks_news_app/models/utils/utils.dart';
 import 'package:uuid/uuid.dart';
 
 class NotificationModel {
-  String id = const Uuid().v1();
-  String content;
-  String url;
-  String publisher;
-  String target;
-  bool checked = false;
-  DateTime timeStamp = DateTime.now();
+  late String id;
+  late String content;
+  late String url;
+  late String publisherID;
+  late String target;
+  late bool checked;
+  late String title;
+  late DateTime timeStamp;
+  late final bool hasAttachment;
+  late final bool containsPictures;
+  late TypeOfNotification typeOfNotification;
 
-  NotificationModel({
-    required this.content,
-    required this.url,
-    required this.publisher,
-    required this.target,
-  });
+  NotificationModel(
+      {String? id,
+      String? content,
+      String? url,
+      String? publisherID,
+      String? target,
+      bool? checked,
+      DateTime? timeStamp,
+      bool? hasAttachment,
+      bool? containsPictures,
+      String? title,
+      TypeOfNotification? typeOfNotification}) {
+    this.id = id ?? const Uuid().v1();
+    this.content = content ?? "";
+    this.url = url ?? "";
+    this.checked = checked ?? false;
+    this.containsPictures = containsPictures ?? false;
+    this.publisherID = publisherID ?? "";
+    this.target = target ?? "";
+    this.timeStamp = timeStamp ?? DateTime.now();
+    this.typeOfNotification =
+        typeOfNotification ?? TypeOfNotification.thoiKhoaBieu;
+    this.title = title ?? "";
+    this.hasAttachment = hasAttachment ?? false;
+  }
 
   factory NotificationModel.fromMap(Map<String, dynamic> data) {
     return NotificationModel(
+      title: data['title'],
+      hasAttachment: data['hasAttachment'],
+      containsPictures: data['containsPictures'],
       content: data['content'],
-      publisher: data['publisher'],
+      publisherID: data['publisher'],
       target: data['target'],
       url: data['url'],
+      typeOfNotification:
+          (data['typeOfTopic'] as String).toTypeOfNotification(),
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
+      'title': title,
       'content': content,
       'id': id,
-      'publisher': publisher,
+      'publisher': publisherID,
       'target': target,
       'url': url,
+      'hasAttachment': hasAttachment,
+      'containsPictures': containsPictures,
+      'typeOfTopic': typeOfNotification.toSortString(),
     };
+  }
+
+  String get getType {
+    if (typeOfNotification == TypeOfNotification.thoiKhoaBieu) {
+      return "Thời khoá biểu";
+    } else if (typeOfNotification == TypeOfNotification.thongBaoCuaGiaoVien) {
+      return "Thông báo của giáo viên";
+    }
+    return "Thông báo của trường";
   }
 
   String get getTitle {
     return "";
   }
 }
+
+enum TypeOfNotification { thoiKhoaBieu, thongBaoCuaGiaoVien, thongBaoCuaTruong }

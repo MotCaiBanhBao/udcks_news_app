@@ -1,28 +1,36 @@
+import 'package:udcks_news_app/models/topic_model.dart';
+
 class MessageModel {
   String id;
   DateTime timeStamp = DateTime.now();
-  String userName;
   String userID;
   String content;
-  String photoUrl;
+  late bool isHasPhoto;
+  late List<String> photoUrl = [];
+  late TopicModel messageChannelID;
 
   MessageModel({
     required this.id,
     required this.userID,
-    required this.userName,
     required this.content,
-    required this.photoUrl,
     required this.timeStamp,
-  });
+    bool? isHasPhoto,
+    List<String>? photoUrl,
+  }) {
+    messageChannelID =
+        TopicModel(topicName: id, typeOfTopic: TypeOfTopics.cacTopicKhac);
+    this.isHasPhoto = isHasPhoto ?? false;
+    this.photoUrl = photoUrl ?? [];
+  }
 
   factory MessageModel.fromMap(Map<String, dynamic> data) {
     return MessageModel(
       id: data['id'],
       userID: data['userID'],
-      userName: data['userName'],
       content: data['content'],
-      photoUrl: data['photoUrl'],
       timeStamp: data['timeStamp'],
+      photoUrl: data['photoUrl'],
+      isHasPhoto: data['isHasPhoto'],
     );
   }
 
@@ -30,10 +38,10 @@ class MessageModel {
     return {
       'id': id,
       'userID': userID,
-      'userName': userName,
       'content': content,
       'photoUrl': photoUrl,
       'timeStamp': timeStamp,
+      'isHasPhoto': isHasPhoto,
     };
   }
 }

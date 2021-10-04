@@ -1,23 +1,36 @@
+import 'package:udcks_news_app/models/utils/utils.dart';
+
 class TopicModel {
   String topicName;
-  String topicID;
+  TypeOfTopics typeOfTopic;
+
+  String get topicID => "/topics/$topicName";
 
   TopicModel({
-    required this.topicID,
     required this.topicName,
+    required this.typeOfTopic,
   });
 
   factory TopicModel.fromMap(Map<String, dynamic> data) {
     return TopicModel(
-      topicID: data['id'],
       topicName: data['topicName'],
+      typeOfTopic: (data['typeOfTopic'] as String).toTypeOfTopic(),
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, String> toMap() {
     return {
       'id': topicID,
       'topicName': topicName,
+      'typeOfTopic': typeOfTopic.toSortString(),
     };
   }
+}
+
+enum TypeOfTopics {
+  khoaKyThuat,
+  khoaSuPham,
+  khoaKinhTe,
+  toanTruong,
+  cacTopicKhac
 }

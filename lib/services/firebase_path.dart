@@ -3,6 +3,9 @@ class FirebasePath {
   static const orderCriteria = "timestamp";
   static const messageKEY = "messages";
   static const topicKEY = "topics";
+
+  
+  static String userPath(String id) => 'users/$id';
   static String notificaionPath(String id) => 'notifications/$id';
   static String topicsOfUser(String uid) => 'users/$uid/topics';
   static String notificationsOfUser(String uid) => 'users/$uid/notifications';

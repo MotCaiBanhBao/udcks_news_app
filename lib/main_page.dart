@@ -2,6 +2,8 @@ import 'package:fancy_bottom_navigation/fancy_bottom_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:udcks_news_app/provider/auth_provider.dart';
+import 'package:udcks_news_app/routers.dart';
+import 'package:udcks_news_app/services/firebase_database.dart';
 import 'package:udcks_news_app/views/notification/notification_screen.dart';
 import 'package:udcks_news_app/views/topic/topic_screen.dart';
 
@@ -43,6 +45,8 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final databaseProvider =
+        Provider.of<FirestoreDatabase>(context, listen: true);
 
     return Scaffold(
       appBar: AppBar(
@@ -53,15 +57,27 @@ class _MainPageState extends State<MainPage> {
               builder: (BuildContext context,
                   AsyncSnapshot<UserModel> userSnapshot) {
                 if (userSnapshot.hasData) {
-                  return Container(
-                    padding: const EdgeInsets.all(5),
-                    child: CircleAvatar(
-                      backgroundImage: NetworkImage(
-                        userSnapshot.data!.photoUrl.toString(),
-                      ),
-                      backgroundColor: Colors.transparent,
-                    ),
-                  );
+                  return StreamBuilder(
+                      stream: databaseProvider.getUser(userSnapshot.data!.uid),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<UserModel> userFirestoreSnapshot) {
+                        if (userFirestoreSnapshot.hasData) {
+                          return Container(
+                            padding: const EdgeInsets.all(5),
+                            child: CircleAvatar(
+                              backgroundImage: NetworkImage(
+                                userFirestoreSnapshot.data!.photoUrl.toString(),
+                              ),
+                              backgroundColor: Colors.transparent,
+                            ),
+                          );
+                        } else {
+                          return Container(
+                            width: 0,
+                            height: 0,
+                          );
+                        }
+                      });
                 } else {
                   return Container(
                     width: 0,
@@ -70,6 +86,11 @@ class _MainPageState extends State<MainPage> {
                 }
               })
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () =>
+            {Navigator.of(context).pushNamed(Routes.notificationForm)},
+        child: Icon(Icons.import_contacts),
       ),
       body: _listOfScreen[_currentIndex]["page"] as Widget,
       // bottomNavigationBar: BottomNavigationBar(

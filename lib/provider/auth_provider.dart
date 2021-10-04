@@ -1,6 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:udcks_news_app/models/user_model.dart';
+import 'package:udcks_news_app/services/firebase_path.dart';
+import 'package:udcks_news_app/services/firestore_services.dart';
 
 enum Status {
   uninitialized,
@@ -20,6 +23,7 @@ enum Status {
 class AuthProvider extends ChangeNotifier {
   //Firebase Auth object
   late FirebaseAuth _auth;
+  late FirestoreService _firestoreService;
 
   //Default status
   Status _status = Status.uninitialized;
@@ -31,7 +35,7 @@ class AuthProvider extends ChangeNotifier {
   AuthProvider() {
     //initialise object
     _auth = FirebaseAuth.instance;
-
+    _firestoreService = FirestoreService.instance;
     //listener for authentication changes such as user sign in and sign out
     _auth.authStateChanges().listen(onAuthStateChanged);
   }
@@ -40,11 +44,6 @@ class AuthProvider extends ChangeNotifier {
   UserModel _userFromFirebase(User? user) {
     if (user == null) {
       return UserModel(displayName: 'Null', uid: 'null');
-    }
-
-    if (user.photoURL == null) {
-      _auth.currentUser!.updatePhotoURL(
-          "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Circle-icons-profile.svg/2048px-Circle-icons-profile.svg.png");
     }
 
     return UserModel(
@@ -68,12 +67,22 @@ class AuthProvider extends ChangeNotifier {
 
   //Method for new user registration using email and password
   Future<UserModel> registerWithEmailAndPassword(
-      String email, String password) async {
+      String email, String password, String firstName, String lastName) async {
     try {
       _status = Status.registering;
       notifyListeners();
       final UserCredential result = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
+
+      if (result.user != null) {
+        _firestoreService.set(
+            path: FirebasePath.userPath(result.user!.uid),
+            data: UserModel(
+              uid: result.user!.uid,
+              email: email,
+              displayName: firstName + " " + lastName,
+            ).toMap());
+      }
 
       return _userFromFirebase(result.user);
     } catch (e) {

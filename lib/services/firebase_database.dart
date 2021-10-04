@@ -43,11 +43,11 @@ class FirestoreDatabase
       );
 
   Future<void> sendNoti(
-      List<TopicModel> topics, String title, String content) async {
+      List<TopicModel> topics, String title, String content, String id) async {
     var uri = Uri.parse("https://fcm.googleapis.com/fcm/send");
     Map<String, String> header = {
       "Authorization":
-      "key=AAAANglE1WA:APA91bFGH05L71y14I1Q8bwOgzPmsclOFd6StLyAKk9ivPmGWUnZreTCs190sZBlcUe7t8cFki2uqDG0NDqZtSi2YrVisflZnBde9E9DdFqtUeWdmUm19h51RRbATnDMU7owaDw0CbSl",
+          "key=AAAANglE1WA:APA91bFGH05L71y14I1Q8bwOgzPmsclOFd6StLyAKk9ivPmGWUnZreTCs190sZBlcUe7t8cFki2uqDG0NDqZtSi2YrVisflZnBde9E9DdFqtUeWdmUm19h51RRbATnDMU7owaDw0CbSl",
       'Content-Type': 'application/json'
     };
 
@@ -55,16 +55,17 @@ class FirestoreDatabase
     for (var topic in topics) {
       http
           .post(
-        uri,
-        body: jsonEncode({
-          "notification": {
-            "title": title,
-            "text": content,
-          },
-          "to": topic.topicID,
-        }),
-        headers: header,
-      )
+            uri,
+            body: jsonEncode({
+              "notification": {
+                "title": title,
+                "text": content,
+              },
+              "data": {"id": id},
+              "to": topic.topicID,
+            }),
+            headers: header,
+          )
           .then((value) => print("cogui " + value.statusCode.toString()));
     }
   }
@@ -77,7 +78,7 @@ class FirestoreDatabase
       data: data.toMap(),
     );
 
-    sendNoti(topics, data.getTitle, data.content);
+    sendNoti(topics, data.title, data.content, data.id);
   }
 
   //Message
@@ -106,9 +107,9 @@ class FirestoreDatabase
 
   @override
   Stream<List<TopicModel>> topicsStream() => _firestoreService.collectionStream(
-    path: FirebasePath.topicKEY,
-    builder: (data, documentId) => TopicModel.fromMap(data),
-  );
+        path: FirebasePath.topicKEY,
+        builder: (data, documentId) => TopicModel.fromMap(data),
+      );
 
   @override
   Stream<List<TopicModel>> topicsOfUserStream(String userID) =>
@@ -121,9 +122,14 @@ class FirestoreDatabase
   //
 
   @override
-  Future<UserModel> getUser(String userID) {
-    // TODO: implement getUser
-    throw UnimplementedError();
+  Stream<UserModel> getUser(String userID) {
+    var data = _firestoreService.documentStream(
+        path: FirebasePath.userPath(userID),
+        builder: (data, documentId) {
+          return UserModel.fromMap(data);
+        });
+
+    return data;
   }
 
   @override

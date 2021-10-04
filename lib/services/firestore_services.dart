@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:udcks_news_app/models/user_model.dart';
 
 /*
 This class represent all possible CRUD operation for FirebaseFirestore.
@@ -19,7 +20,7 @@ class FirestoreService {
     print('$path: $data');
     await reference.set(data);
   }
-
+  
   Future<void> bulkSet({
     required String path,
     required List<Map<String, dynamic>> datas,

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
 import 'package:udcks_news_app/provider/auth_provider.dart';
+import 'package:udcks_news_app/provider/language_provider.dart';
 import 'package:udcks_news_app/services/firebase_database.dart';
 
 import 'my_app.dart';
@@ -16,19 +17,18 @@ const AndroidNotificationChannel channel = AndroidNotificationChannel(
     playSound: true);
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-FlutterLocalNotificationsPlugin();
+    FlutterLocalNotificationsPlugin();
 
 Future<void> _firebaseMessagingBackgroundHandle(RemoteMessage message) async {
   await Firebase.initializeApp();
-  print("A bg message just show up: ${message.messageId} ");
+  print("CO NHAN NE? " + message.data['id'].toString());
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   FirebaseMessaging messaging = FirebaseMessaging.instance;
-  FirebaseMessaging.onBackgroundMessage(
-          (message) => _firebaseMessagingBackgroundHandle(message));
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandle);
 
   FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
   firebaseMessaging.getToken();
@@ -37,7 +37,7 @@ void main() async {
 
   await flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<
-      AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
   NotificationSettings settings = await messaging.requestPermission(
     alert: true,
@@ -53,6 +53,9 @@ void main() async {
     providers: [
       ChangeNotifierProvider<AuthProvider>(
         create: (context) => AuthProvider(),
+      ),
+      ChangeNotifierProvider<LanguageProvider>(
+        create: (context) => LanguageProvider(),
       ),
     ],
     child: MyApp(
