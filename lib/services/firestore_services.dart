@@ -14,13 +14,13 @@ class FirestoreService {
   Future<void> set({
     required String path,
     required Map<String, dynamic> data,
-    bool merge = false,
+    bool mergeBool = false,
   }) async {
     final reference = FirebaseFirestore.instance.doc(path);
     print('$path: $data');
-    await reference.set(data);
+    await reference.set(data, SetOptions(merge: mergeBool));
   }
-  
+
   Future<void> bulkSet({
     required String path,
     required List<Map<String, dynamic>> datas,
@@ -45,17 +45,23 @@ class FirestoreService {
     required String path,
     required T builder(Map<String, dynamic> data, String documentID),
     Query queryBuilder(Query query)?,
+    List<String?>? id,
     int sort(T lhs, T rhs)?,
   }) {
     Query query = FirebaseFirestore.instance.collection(path);
+    if (id != null) {
+      query = query.where("id", whereIn: id);
+    }
+
     if (queryBuilder != null) {
       query = queryBuilder(query);
     }
+
     final Stream<QuerySnapshot> snapshots = query.snapshots();
     return snapshots.map((snapshot) {
       final result = snapshot.docs
           .map((snapshot) =>
-          builder(snapshot.data() as Map<String, dynamic>, snapshot.id))
+              builder(snapshot.data() as Map<String, dynamic>, snapshot.id))
           .where((value) => value != null)
           .toList();
       if (sort != null) {

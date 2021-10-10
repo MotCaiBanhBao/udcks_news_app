@@ -1,13 +1,12 @@
 import 'package:fancy_bottom_navigation/fancy_bottom_navigation.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:udcks_news_app/provider/auth_provider.dart';
 import 'package:udcks_news_app/routers.dart';
-import 'package:udcks_news_app/services/firebase_database.dart';
+import 'package:udcks_news_app/styling.dart';
 import 'package:udcks_news_app/views/notification/notification_screen.dart';
 import 'package:udcks_news_app/views/topic/topic_screen.dart';
-
-import 'models/user_model.dart';
+import 'package:udcks_news_app/views/transaction/scale_out_transcation.dart';
+import 'package:udcks_news_app/views/udck_detail/udck_detail_screen.dart';
+import 'package:udcks_news_app/views/user/user_screen.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
@@ -29,9 +28,17 @@ class _MainPageState extends State<MainPage> {
         "title": "Notification",
       },
       {
-        "page": const TopicScreen(),
+        "page": TopicScreen(),
         "title": "Channel",
       },
+      {
+        "page": UdckDetailScreen(),
+        "title": "UDCK Detail Page",
+      },
+      {
+        "page": ProfilePage(),
+        "title": "User",
+      }
     ];
     super.initState();
   }
@@ -44,55 +51,18 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final databaseProvider =
-        Provider.of<FirestoreDatabase>(context, listen: true);
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_listOfScreen[_currentIndex]["title"].toString()),
-        actions: [
-          StreamBuilder(
-              stream: authProvider.user,
-              builder: (BuildContext context,
-                  AsyncSnapshot<UserModel> userSnapshot) {
-                if (userSnapshot.hasData) {
-                  return StreamBuilder(
-                      stream: databaseProvider.getUser(userSnapshot.data!.uid),
-                      builder: (BuildContext context,
-                          AsyncSnapshot<UserModel> userFirestoreSnapshot) {
-                        if (userFirestoreSnapshot.hasData) {
-                          return Container(
-                            padding: const EdgeInsets.all(5),
-                            child: CircleAvatar(
-                              backgroundImage: NetworkImage(
-                                userFirestoreSnapshot.data!.photoUrl.toString(),
-                              ),
-                              backgroundColor: Colors.transparent,
-                            ),
-                          );
-                        } else {
-                          return Container(
-                            width: 0,
-                            height: 0,
-                          );
-                        }
-                      });
-                } else {
-                  return Container(
-                    width: 0,
-                    height: 0,
-                  );
-                }
-              })
-        ],
-      ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: AppTheme.grey,
         onPressed: () =>
             {Navigator.of(context).pushNamed(Routes.notificationForm)},
-        child: Icon(Icons.import_contacts),
+        child: const Icon(
+          Icons.send,
+          color: AppTheme.notWhite,
+        ),
       ),
-      body: _listOfScreen[_currentIndex]["page"] as Widget,
+      body: ScaleOutTransition(
+          child: _listOfScreen[_currentIndex]["page"] as Widget),
       // bottomNavigationBar: BottomNavigationBar(
       //   currentIndex: _currentIndex,
       //   onTap: (index) => _onSelected(index),
@@ -113,10 +83,16 @@ class _MainPageState extends State<MainPage> {
       //   ],
       // ),
       bottomNavigationBar: FancyBottomNavigation(
+        activeIconColor: AppTheme.grey,
+        circleColor: AppTheme.notWhite,
+        barBackgroundColor: AppTheme.darkGrey,
+        inactiveIconColor: AppTheme.notWhite,
+        textColor: AppTheme.notWhite,
         tabs: [
           TabData(iconData: Icons.home, title: "Home"),
-          TabData(iconData: Icons.search, title: "Search"),
-          TabData(iconData: Icons.shopping_cart, title: "Basket")
+          TabData(iconData: Icons.turned_in, title: "Search"),
+          TabData(iconData: Icons.web, title: "Detail"),
+          TabData(iconData: Icons.account_circle, title: "User")
         ],
         onTabChangedListener: (position) => _onSelected(position),
       ),

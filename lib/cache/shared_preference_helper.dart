@@ -7,7 +7,7 @@ class SharedPreferenceHelper {
   SharedPreferenceHelper() {
     _sharedPreference = SharedPreferences.getInstance();
   }
-  
+
   //Locale module
   Future<String>? get appLocale {
     return _sharedPreference?.then((prefs) {
@@ -17,7 +17,7 @@ class SharedPreferenceHelper {
 
   Future<void> changeLanguage(String value) {
     return _sharedPreference!.then((prefs) {
-      return prefs.setString(languageCode, value);
+      prefs.setString(languageCode, value);
     });
   }
 }

@@ -64,6 +64,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.15.0"
+  comment_box:
+    dependency: "direct main"
+    description:
+      name: comment_box
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.16"
+  comment_tree:
+    dependency: "direct main"
+    description:
+      name: comment_tree
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.0"
   crypto:
     dependency: transitive
     description:
@@ -287,6 +301,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.7.0"
+  multi_select_flutter:
+    dependency: "direct main"
+    description:
+      name: multi_select_flutter
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.0.0"
   nested:
     dependency: transitive
     description:
@@ -356,7 +377,7 @@ packages:
       name: provider
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.0.1"
+    version: "5.0.0"
   shared_preferences:
     dependency: "direct main"
     description:
@@ -446,6 +467,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.4.2"
+  timeago:
+    dependency: "direct main"
+    description:
+      name: timeago
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.1.0"
   timezone:
     dependency: transitive
     description:
@@ -474,6 +502,34 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
+  webview_flutter:
+    dependency: "direct main"
+    description:
+      name: webview_flutter
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.1"
+  webview_flutter_android:
+    dependency: transitive
+    description:
+      name: webview_flutter_android
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.15"
+  webview_flutter_platform_interface:
+    dependency: transitive
+    description:
+      name: webview_flutter_platform_interface
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.2.0"
+  webview_flutter_wkwebview:
+    dependency: transitive
+    description:
+      name: webview_flutter_wkwebview
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.14"
   win32:
     dependency: transitive
     description:

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:udcks_news_app/models/user_model.dart';
@@ -8,12 +6,12 @@ import 'package:udcks_news_app/provider/auth_provider.dart';
 import 'package:udcks_news_app/provider/language_provider.dart';
 import 'package:udcks_news_app/routers.dart';
 import 'package:udcks_news_app/services/firebase_database.dart';
+import 'package:udcks_news_app/services/notifiaction/fcm_firebase.dart';
 import 'package:udcks_news_app/styling.dart';
 import 'package:udcks_news_app/views/auth/sign_in_screen.dart';
 import 'package:udcks_news_app/views/home/home.dart';
 import 'app_localization.dart';
 import 'auth_widget_builder.dart';
-import 'main.dart';
 
 class MyApp extends StatefulWidget {
   final FirestoreDatabase Function(BuildContext context, String uid)
@@ -27,34 +25,13 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
-
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      RemoteNotification? notification = message.notification;
-      AndroidNotification? android = message.notification?.android;
-      print("CO NHAN NE? " + message.data['id'].toString());
-      if (notification != null && android != null) {
-        flutterLocalNotificationsPlugin.show(
-            notification.hashCode,
-            notification.title,
-            notification.body,
-            NotificationDetails(
-                android: AndroidNotificationDetails(
-                    channel.id, channel.name, channel.description,
-                    color: Colors.blue,
-                    playSound: true,
-                    icon: '@mipmap/ic_launcher')));
-      }
-    });
-    FirebaseMessaging.onMessageOpenedApp.listen((event) {
-      print("CO NHAN NE? " + event.data['id'].toString());
-    });
+    FCMServices.setUp();
   }
 
   @override
@@ -94,8 +71,10 @@ class _MyAppState extends State<MyApp> {
                 return supportedLocales.first;
               },
               theme: ThemeData(
+                  buttonColor: AppTheme.grey,
                   textTheme: AppTheme.textTheme,
                   scaffoldBackgroundColor: AppTheme.notWhite,
+                  accentColor: AppTheme.orange,
                   canvasColor: AppTheme.notWhite),
               debugShowCheckedModeBanner: false,
               title: "Sigin",

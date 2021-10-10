@@ -6,48 +6,14 @@ import 'package:provider/provider.dart';
 import 'package:udcks_news_app/provider/auth_provider.dart';
 import 'package:udcks_news_app/provider/language_provider.dart';
 import 'package:udcks_news_app/services/firebase_database.dart';
+import 'package:udcks_news_app/services/notifiaction/fcm_firebase.dart';
 
 import 'my_app.dart';
-
-const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    "high_important_channel",
-    "High Important Notifications",
-    "This channel is use for important notifications",
-    importance: Importance.high,
-    playSound: true);
-
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
-
-Future<void> _firebaseMessagingBackgroundHandle(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  print("CO NHAN NE? " + message.data['id'].toString());
-}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandle);
-
-  FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
-  firebaseMessaging.getToken();
-
-  firebaseMessaging.subscribeToTopic("k12tt");
-
-  await flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(channel);
-  NotificationSettings settings = await messaging.requestPermission(
-    alert: true,
-    announcement: false,
-    badge: true,
-    carPlay: false,
-    criticalAlert: false,
-    provisional: false,
-    sound: true,
-  );
+  FCMServices.init();
 
   runApp(MultiProvider(
     providers: [

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:udcks_news_app/models/message_model.dart';
 import 'package:udcks_news_app/models/notification_model.dart';
 import 'package:udcks_news_app/models/topic_model.dart';
@@ -8,6 +9,7 @@ import 'package:udcks_news_app/services/use_cases/message_services.dart';
 import 'package:udcks_news_app/services/use_cases/notification_services.dart';
 import 'package:udcks_news_app/services/use_cases/topic_services.dart';
 import 'package:udcks_news_app/services/use_cases/user_services.dart';
+import 'package:uuid/uuid.dart';
 
 import 'firebase_path.dart';
 import 'firestore_services.dart';
@@ -22,11 +24,15 @@ class FirestoreDatabase
   //Notification
   //
   @override
-  Stream<List<NotificationModel>> loadNotificationOfUser() =>
-      _firestoreService.collectionStream(
-        path: FirebasePath.notificationsOfUser(uid!),
-        builder: (data, documentId) => NotificationModel.fromMap(data),
-      );
+  Stream<List<NotificationModel>> loadNotificationOfUser(UserModel user) {
+    var listNotificationID = user.notificationID;
+
+    return _firestoreService.collectionStream(
+      path: FirebasePath.notificationKEY,
+      builder: (data, documentId) => NotificationModel.fromMap(data),
+      id: listNotificationID,
+    );
+  }
 
   @override
   Stream<List<NotificationModel>> notificationsStream() =>
@@ -51,17 +57,22 @@ class FirestoreDatabase
       'Content-Type': 'application/json'
     };
 
+    print(topics.toString() + " " + id);
+
     //"/topics/test"
     for (var topic in topics) {
       http
           .post(
             uri,
             body: jsonEncode({
-              "notification": {
-                "title": title,
-                "text": content,
+              "notification": {"title": title, "text": content, "tag": id},
+              "data": {
+                "id": id,
+                "tag": id.hashCode,
               },
-              "data": {"id": id},
+              "android": {
+                "tag": id,
+              },
               "to": topic.topicID,
             }),
             headers: header,
@@ -73,6 +84,7 @@ class FirestoreDatabase
   @override
   Future<void> pushNotification(
       NotificationModel data, List<TopicModel> topics) async {
+    data.publisherID = uid!;
     await _firestoreService.set(
       path: FirebasePath.notificaionPath(data.id),
       data: data.toMap(),
@@ -122,15 +134,17 @@ class FirestoreDatabase
   //
 
   @override
-  Stream<UserModel> getUser(String userID) {
-    var data = _firestoreService.documentStream(
-        path: FirebasePath.userPath(userID),
-        builder: (data, documentId) {
-          return UserModel.fromMap(data);
-        });
+  Stream<UserModel> getUser(String userID) => _firestoreService.documentStream(
+      path: FirebasePath.userPath(userID),
+      builder: (data, documentId) {
+        return UserModel.fromMap(data);
+      });
 
-    return data;
-  }
+  Stream<UserModel> currentUser() => _firestoreService.documentStream(
+      path: FirebasePath.userPath(uid!),
+      builder: (data, documentId) {
+        return UserModel.fromMap(data);
+      });
 
   @override
   Future<void> reSubTopics() {

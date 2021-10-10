@@ -23,10 +23,10 @@ class Routes {
   static final routes = <String, WidgetBuilder>{
     splash: (BuildContext context) => SplashScreen(),
     login: (BuildContext context) => SignInScreen(),
-    mainPage: (BuildContext context) => MainPage(),
-    notification: (BuildContext context) => NotificationScreen(),
+    mainPage: (BuildContext context) => const MainPage(),
+    notification: (BuildContext context) => const NotificationScreen(),
     register: (BuildContext context) => RegisterScreen(),
-    welcomePage: (BuildContext context) => WelcomeScreen(),
+    welcomePage: (BuildContext context) => const WelcomeScreen(),
     notificationForm: (BuildContext context) => NotificationForm(),
   };
 }

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:udcks_news_app/models/topic_model.dart';
 import 'package:udcks_news_app/models/utils/utils.dart';
 
@@ -9,6 +10,7 @@ class UserModel {
   String? photoUrl;
   late List<TopicModel> subscribedChannels;
   late UserRole userRole;
+  late List<String?> notificationID;
 
   UserModel(
       {required this.uid,
@@ -16,8 +18,10 @@ class UserModel {
       List<TopicModel>? subscribedChannels,
       this.displayName,
       String? phoneNumber,
+      List<String>? notificationID,
       UserRole? userRole,
       String? photoUrl}) {
+    this.notificationID = notificationID ?? [null];
     this.phoneNumber = phoneNumber ?? "";
     this.subscribedChannels = subscribedChannels ??
         [TopicModel(topicName: "udck", typeOfTopic: TypeOfTopics.toanTruong)];
@@ -29,18 +33,26 @@ class UserModel {
   factory UserModel.fromMap(Map<String, dynamic> data) {
     List<TopicModel> sub = [];
     List<dynamic> subscribedChannelsRaw = data['subscribedChannels'];
-    subscribedChannelsRaw.forEach((element) {
+    for (var element in subscribedChannelsRaw) {
       sub.add(TopicModel(
         topicName: element['topicName'],
         typeOfTopic: (element['typeOfTopic'] as String).toTypeOfTopic(),
       ));
-    });
+    }
+
+    List<String> notiID = [];
+    List<dynamic> notiIDRaw = data['messagesID'];
+    for (var element in notiIDRaw) {
+      notiID.add(element);
+    }
+
     return UserModel(
         uid: data['uid'],
         email: data['email'],
         displayName: data['displayName'],
         phoneNumber: data['phoneNumber'],
         photoUrl: data['photoUrl'],
+        notificationID: notiID,
         userRole: (data['userRole'] as String).toUserRole(),
         subscribedChannels: sub);
   }
@@ -53,6 +65,7 @@ class UserModel {
       'phoneNumber': phoneNumber,
       'photoUrl': photoUrl,
       'userRole': userRole.toSortString(),
+      "messagesID": FieldValue.arrayUnion([notificationID]),
       'subscribedChannels':
           subscribedChannels.map<Map<String, dynamic>>((value) {
         return value.toMap();

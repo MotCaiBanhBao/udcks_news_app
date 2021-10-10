@@ -81,7 +81,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                       labelText: AppLocalizations.of(context)
                           .translate("loginTxtEmail"),
-                      border: OutlineInputBorder()),
+                      border: const OutlineInputBorder()),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16),

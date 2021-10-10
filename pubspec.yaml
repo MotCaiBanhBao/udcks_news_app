@@ -29,7 +29,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  provider: ^6.0.1
+  provider: ^5.0.0 
   firebase_core: ^1.7.0
   firebase_auth: ^3.1.2
   cloud_firestore: ^2.5.3
@@ -41,6 +41,11 @@ dependencies:
   uuid: ^3.0.4
   shared_preferences: ^2.0.6
   intro_slider: ^3.0.2
+  comment_box: ^0.0.16
+  comment_tree: ^0.2.0
+  timeago: ^3.1.0
+  webview_flutter: ^2.1.1
+  multi_select_flutter: ^4.0.0
   flutter_localizations:
     sdk: flutter
 
@@ -79,6 +84,7 @@ flutter:
     - assets/images/localization_slide.jpg
     - assets/images/notification_slide.jpg
     - assets/images/subcribe_slide.jpg
+    - assets/images/user_icon.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

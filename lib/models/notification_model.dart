@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:udcks_news_app/models/utils/utils.dart';
 import 'package:uuid/uuid.dart';
 
@@ -42,6 +43,7 @@ class NotificationModel {
 
   factory NotificationModel.fromMap(Map<String, dynamic> data) {
     return NotificationModel(
+      timeStamp: (data['timeStamp'] as Timestamp).toDate(),
       title: data['title'],
       hasAttachment: data['hasAttachment'],
       containsPictures: data['containsPictures'],
@@ -56,6 +58,7 @@ class NotificationModel {
 
   Map<String, dynamic> toMap() {
     return {
+      'timeStamp': timeStamp,
       'title': title,
       'content': content,
       'id': id,

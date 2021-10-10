@@ -5,6 +5,7 @@ import 'package:udcks_news_app/models/notification_model.dart';
 import 'package:udcks_news_app/models/topic_model.dart';
 import 'package:udcks_news_app/models/utils/utils.dart';
 import 'package:udcks_news_app/services/firebase_database.dart';
+import 'package:udcks_news_app/styling.dart';
 
 List<GlobalKey<FormState>> formKeys = [
   GlobalKey<FormState>(),
@@ -44,7 +45,10 @@ class _NotificationFormState extends State<NotificationForm> {
   Widget build(BuildContext context) {
     FirestoreDatabase database = Provider.of<FirestoreDatabase>(context);
     return Scaffold(
+      backgroundColor: AppTheme.notWhite,
       appBar: AppBar(
+        backgroundColor: AppTheme.notWhite,
+        foregroundColor: AppTheme.grey,
         title: Text(
             AppLocalizations.of(context).translate("notificationFormLeading")),
         centerTitle: true,
@@ -241,6 +245,9 @@ class _NotificationFormState extends State<NotificationForm> {
                     NotificationModel(content: content, title: title), [
                   TopicModel(
                       topicName: "k12tt",
+                      typeOfTopic: TypeOfTopics.cacTopicKhac),
+                  TopicModel(
+                      topicName: "k11tt",
                       typeOfTopic: TypeOfTopics.cacTopicKhac)
                 ]);
               },

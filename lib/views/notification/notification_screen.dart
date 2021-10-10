@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:udcks_news_app/models/notification_model.dart';
-import 'package:udcks_news_app/models/topic_model.dart';
+import 'package:udcks_news_app/models/user_model.dart';
+import 'package:udcks_news_app/provider/auth_provider.dart';
 import 'package:udcks_news_app/services/firebase_database.dart';
 import 'package:udcks_news_app/views/notification/list_item.dart';
+import 'package:udcks_news_app/views/transaction/scale_out_transcation.dart';
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({Key? key}) : super(key: key);
@@ -14,23 +16,41 @@ class NotificationScreen extends StatelessWidget {
     return Scaffold(
       appBar: null,
       body: StreamBuilder(
-        stream: firestoreDatabase.notificationsStream(),
+        stream: firestoreDatabase.currentUser(),
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            List<NotificationModel> notifications =
-                snapshot.data as List<NotificationModel>;
-            if (notifications.isNotEmpty) {
-              return ListView.separated(
-                itemBuilder: (context, index) {
-                  return ListItem(item: notifications[index]);
-                },
-                separatorBuilder: (context, index) {
-                  return const Divider(height: 0.5);
-                },
-                itemCount: notifications.length,
-              );
-            }
+          if (snapshot.hasData &&
+              (snapshot.data as UserModel).notificationID.isNotEmpty) {
+            return StreamBuilder(
+                stream: firestoreDatabase
+                    .loadNotificationOfUser(snapshot.data as UserModel),
+                builder: (context, listNotiStream) {
+                  if (listNotiStream.hasData) {
+                    List<NotificationModel> notifications =
+                        listNotiStream.data as List<NotificationModel>;
+                    if (notifications.isNotEmpty) {
+                      return ScaleOutTransition(
+                          child: Material(
+                        child: Padding(
+                          padding: const EdgeInsets.all(2),
+                          child: ListView.builder(
+                            itemBuilder: (context, index) {
+                              return ListItem(item: notifications[index]);
+                            },
+                            itemCount: notifications.length,
+                          ),
+                        ),
+                      ));
+                    } else {
+                      return const Center(
+                          child: Text("Tạm thời chưa có thông tin"));
+                    }
+                  } else {
+                    return const Center(
+                        child: Text("Tạm thời chưa có thông tin"));
+                  }
+                });
           }
+
           return const Center(child: Text("Tạm thời chưa có thông tin"));
         },
       ),

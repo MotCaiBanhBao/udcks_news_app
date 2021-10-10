@@ -20,21 +20,15 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
         body: Center(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Center(
-                    child: Text(
-                      "Title",
-                      style: TextStyle(
-                        fontSize: Theme.of(context).textTheme.headline1!.fontSize,
-                      ),
-                    )),
-                FlutterLogo(
-                  size: 128,
-                ),
-              ],
-            )));
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Center(
+          child: Image.asset("assets/images/udck_logo.png",
+              width: 300, height: 300),
+        ),
+      ],
+    )));
   }
 
   startTimer() {

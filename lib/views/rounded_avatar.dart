@@ -14,7 +14,7 @@ class _RoundedAvatarState extends State<RoundedAvatar> {
   @override
   Widget build(BuildContext context) {
     return Material(
-      shape: CircleBorder(
+      shape: const CircleBorder(
         side: BorderSide(color: const Color(0xFFEEF1F3), width: 1),
       ),
       clipBehavior: Clip.hardEdge,
