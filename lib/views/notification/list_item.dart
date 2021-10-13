@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:udcks_news_app/models/notification_model.dart';
 import 'package:udcks_news_app/models/user_model.dart';
+import 'package:udcks_news_app/provider/auth_provider.dart';
 import 'package:udcks_news_app/services/firebase_database.dart';
 import 'package:udcks_news_app/services/firebase_path.dart';
 import 'package:udcks_news_app/styling.dart';
@@ -16,6 +17,7 @@ class ListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreDatabase = Provider.of<FirestoreDatabase>(context);
+    final firebaseAuth = Provider.of<AuthProvider>(context);
     return Dismissible(
         key: ObjectKey(item.id),
         dismissThresholds: const {
@@ -74,9 +76,15 @@ class ListItem extends StatelessWidget {
                               _notificationPreview,
                             ],
                           )),
-                      onTap: () => Navigator.of(context).push<void>(
-                          NotificationDetails.route(
-                              context, item, snapshot.data as UserModel)));
+                      onTap: () {
+                        Navigator.of(context)
+                            .push<void>(NotificationDetails.route(
+                          context,
+                          item.id,
+                          snapshot.data as UserModel,
+                          firebaseAuth.id
+                        ));
+                      });
                 }),
           ),
         ));
@@ -104,7 +112,7 @@ class ListItem extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 item.title,
-                style: item.containsPictures
+                style: item.isContainsPictures
                     ? AppTheme.headline
                     : AppTheme.title.copyWith(
                         color: item.checked
@@ -148,7 +156,7 @@ class ListItem extends StatelessWidget {
             ),
           ],
         ),
-        if (item.containsPictures) ..._miniGallery,
+        if (item.isContainsPictures) ..._miniGallery,
       ],
     );
   }

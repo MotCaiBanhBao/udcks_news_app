@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:udcks_news_app/models/user_model.dart';
@@ -31,6 +30,7 @@ class AuthProvider extends ChangeNotifier {
   Status get status => _status;
 
   Stream<UserModel> get user => _auth.authStateChanges().map(_userFromFirebase);
+  String? get id => _auth.currentUser?.uid;
 
   AuthProvider() {
     //initialise object

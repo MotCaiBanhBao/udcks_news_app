@@ -28,6 +28,14 @@ class AppTheme {
     caption: caption,
   );
 
+  static const TextStyle errorText = TextStyle(
+    fontFamily: 'WorkSans',
+    fontWeight: FontWeight.bold,
+    fontSize: 16,
+    letterSpacing: 0.18,
+    color: orange,
+  );
+
   static const TextStyle display1 = TextStyle(
     fontFamily: 'WorkSans',
     fontWeight: FontWeight.bold,

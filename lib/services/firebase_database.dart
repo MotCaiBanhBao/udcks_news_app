@@ -25,7 +25,7 @@ class FirestoreDatabase
   //
   @override
   Stream<List<NotificationModel>> loadNotificationOfUser(UserModel user) {
-    var listNotificationID = user.notificationID;
+    var listNotificationID = user.notificationIDs;
 
     return _firestoreService.collectionStream(
       path: FirebasePath.notificationKEY,
@@ -42,11 +42,12 @@ class FirestoreDatabase
       );
 
   @override
-  Stream<NotificationModel> notificationStream(String notificationId) =>
-      _firestoreService.documentStream(
-        path: FirebasePath.notification(notificationId),
-        builder: (data, documentId) => NotificationModel.fromMap(data),
-      );
+  Stream<NotificationModel> notificationStream(String notificationId) {
+    return _firestoreService.documentStream(
+      path: FirebasePath.notificaionPath(notificationId),
+      builder: (data, documentId) => NotificationModel.fromMap(data),
+    );
+  }
 
   Future<void> sendNoti(
       List<TopicModel> topics, String title, String content, String id) async {
@@ -56,8 +57,6 @@ class FirestoreDatabase
           "key=AAAANglE1WA:APA91bFGH05L71y14I1Q8bwOgzPmsclOFd6StLyAKk9ivPmGWUnZreTCs190sZBlcUe7t8cFki2uqDG0NDqZtSi2YrVisflZnBde9E9DdFqtUeWdmUm19h51RRbATnDMU7owaDw0CbSl",
       'Content-Type': 'application/json'
     };
-
-    print(topics.toString() + " " + id);
 
     //"/topics/test"
     for (var topic in topics) {
@@ -96,16 +95,17 @@ class FirestoreDatabase
   //Message
   //
   @override
-  Stream<List<MessageModel>> loadMessagesOnNoti(String notificationId) =>
-      _firestoreService.collectionStream(
-        path: FirebasePath.messageOfNotification(notificationId),
-        builder: (data, documentId) => MessageModel.fromMap(data),
-      );
+  Stream<List<MessageModel>> loadMessagesOnNoti(String notificationId) {
+    return _firestoreService.collectionStream(
+      path: FirebasePath.messagesOfNotification(notificationId),
+      builder: (data, documentId) => MessageModel.fromMap(data),
+    );
+  }
 
   @override
   Future<void> pushMessage(MessageModel message, String notificationId) async =>
       await _firestoreService.set(
-        path: FirebasePath.messageOfNotification(notificationId),
+        path: FirebasePath.messagePath(notificationId, message.id),
         data: message.toMap(),
       );
 
@@ -156,5 +156,13 @@ class FirestoreDatabase
   Future<void> unSubTopics() {
     // TODO: implement unSubTopics
     throw UnimplementedError();
+  }
+
+  @override
+  Future<void> pushTopic(TopicModel topic) async {
+      await _firestoreService.set(
+      path: FirebasePath.topicPath(topic.typeOfTopic, topic.topicName) ,
+      data: topic.toMap(),
+    );
   }
 }

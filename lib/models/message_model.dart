@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:udcks_news_app/models/topic_model.dart';
+import 'package:uuid/uuid.dart';
 
 class MessageModel {
-  String id;
-  DateTime timeStamp = DateTime.now();
+  late String id;
+  late DateTime timeStamp;
   String userID;
   String content;
   late bool isHasPhoto;
@@ -10,28 +12,37 @@ class MessageModel {
   late TopicModel messageChannelID;
 
   MessageModel({
-    required this.id,
+    String? id,
     required this.userID,
     required this.content,
-    required this.timeStamp,
+    DateTime? timeStamp,
     bool? isHasPhoto,
     List<String>? photoUrl,
   }) {
+    this.id = id ?? const Uuid().v1();
+    this.timeStamp = timeStamp ?? DateTime.now();
     messageChannelID =
-        TopicModel(topicName: id, typeOfTopic: TypeOfTopics.cacTopicKhac);
+        TopicModel(topicName: this.id, typeOfTopic: TypeOfTopics.cacTopicKhac);
     this.isHasPhoto = isHasPhoto ?? false;
     this.photoUrl = photoUrl ?? [];
   }
 
   factory MessageModel.fromMap(Map<String, dynamic> data) {
-    return MessageModel(
+    List<String> photoUrlTemp = [];
+    List<dynamic> photoUrlRaw = data['photoUrl'];
+    for (var element in photoUrlRaw) {
+      photoUrlTemp.add(element);
+    }
+
+    MessageModel message = MessageModel(
       id: data['id'],
       userID: data['userID'],
       content: data['content'],
-      timeStamp: data['timeStamp'],
-      photoUrl: data['photoUrl'],
+      timeStamp: (data['timeStamp'] as Timestamp).toDate(),
+      photoUrl: photoUrlTemp,
       isHasPhoto: data['isHasPhoto'],
     );
+    return message;
   }
 
   Map<String, dynamic> toMap() {

@@ -10,7 +10,7 @@ class UserModel {
   String? photoUrl;
   late List<TopicModel> subscribedChannels;
   late UserRole userRole;
-  late List<String?> notificationID;
+  late List<String?> notificationIDs;
 
   UserModel(
       {required this.uid,
@@ -18,10 +18,10 @@ class UserModel {
       List<TopicModel>? subscribedChannels,
       this.displayName,
       String? phoneNumber,
-      List<String>? notificationID,
+      List<String>? notificationIDs,
       UserRole? userRole,
       String? photoUrl}) {
-    this.notificationID = notificationID ?? [null];
+    this.notificationIDs = notificationIDs ?? [];
     this.phoneNumber = phoneNumber ?? "";
     this.subscribedChannels = subscribedChannels ??
         [TopicModel(topicName: "udck", typeOfTopic: TypeOfTopics.toanTruong)];
@@ -52,7 +52,7 @@ class UserModel {
         displayName: data['displayName'],
         phoneNumber: data['phoneNumber'],
         photoUrl: data['photoUrl'],
-        notificationID: notiID,
+        notificationIDs: notiID,
         userRole: (data['userRole'] as String).toUserRole(),
         subscribedChannels: sub);
   }
@@ -65,7 +65,7 @@ class UserModel {
       'phoneNumber': phoneNumber,
       'photoUrl': photoUrl,
       'userRole': userRole.toSortString(),
-      "messagesID": FieldValue.arrayUnion([notificationID]),
+      "messagesID": FieldValue.arrayUnion(notificationIDs.toList()),
       'subscribedChannels':
           subscribedChannels.map<Map<String, dynamic>>((value) {
         return value.toMap();

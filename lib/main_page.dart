@@ -1,6 +1,9 @@
 import 'package:fancy_bottom_navigation/fancy_bottom_navigation.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:udcks_news_app/models/topic_model.dart';
 import 'package:udcks_news_app/routers.dart';
+import 'package:udcks_news_app/services/firebase_database.dart';
 import 'package:udcks_news_app/styling.dart';
 import 'package:udcks_news_app/views/notification/notification_screen.dart';
 import 'package:udcks_news_app/views/topic/topic_screen.dart';
@@ -54,8 +57,9 @@ class _MainPageState extends State<MainPage> {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppTheme.grey,
-        onPressed: () =>
-            {Navigator.of(context).pushNamed(Routes.notificationForm)},
+        onPressed: () {
+          Navigator.of(context).pushNamed(Routes.notificationForm);
+        },
         child: const Icon(
           Icons.send,
           color: AppTheme.notWhite,

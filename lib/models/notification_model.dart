@@ -12,7 +12,7 @@ class NotificationModel {
   late String title;
   late DateTime timeStamp;
   late final bool hasAttachment;
-  late final bool containsPictures;
+  late final bool isContainsPictures;
   late TypeOfNotification typeOfNotification;
 
   NotificationModel(
@@ -24,14 +24,14 @@ class NotificationModel {
       bool? checked,
       DateTime? timeStamp,
       bool? hasAttachment,
-      bool? containsPictures,
+      bool? isContainsPictures,
       String? title,
       TypeOfNotification? typeOfNotification}) {
     this.id = id ?? const Uuid().v1();
     this.content = content ?? "";
     this.url = url ?? "";
     this.checked = checked ?? false;
-    this.containsPictures = containsPictures ?? false;
+    this.isContainsPictures = isContainsPictures ?? false;
     this.publisherID = publisherID ?? "";
     this.target = target ?? "";
     this.timeStamp = timeStamp ?? DateTime.now();
@@ -43,10 +43,11 @@ class NotificationModel {
 
   factory NotificationModel.fromMap(Map<String, dynamic> data) {
     return NotificationModel(
+      id: data['id'],
       timeStamp: (data['timeStamp'] as Timestamp).toDate(),
       title: data['title'],
       hasAttachment: data['hasAttachment'],
-      containsPictures: data['containsPictures'],
+      isContainsPictures: data['containsPictures'],
       content: data['content'],
       publisherID: data['publisher'],
       target: data['target'],
@@ -66,7 +67,7 @@ class NotificationModel {
       'target': target,
       'url': url,
       'hasAttachment': hasAttachment,
-      'containsPictures': containsPictures,
+      'containsPictures': isContainsPictures,
       'typeOfTopic': typeOfNotification.toSortString(),
     };
   }

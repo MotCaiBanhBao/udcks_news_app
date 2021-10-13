@@ -19,7 +19,7 @@ class NotificationScreen extends StatelessWidget {
         stream: firestoreDatabase.currentUser(),
         builder: (context, snapshot) {
           if (snapshot.hasData &&
-              (snapshot.data as UserModel).notificationID.isNotEmpty) {
+              (snapshot.data as UserModel).notificationIDs.isNotEmpty) {
             return StreamBuilder(
                 stream: firestoreDatabase
                     .loadNotificationOfUser(snapshot.data as UserModel),
