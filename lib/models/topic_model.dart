@@ -18,6 +18,13 @@ class TopicModel {
     );
   }
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TopicModel &&
+          runtimeType == other.runtimeType &&
+          topicName == other.topicName;
+
   Map<String, String> toMap() {
     return {
       'id': topicID,

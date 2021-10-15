@@ -16,6 +16,14 @@ class FirebasePath {
     }
   } 
 
+  static String topicsPath(TypeOfTopics typeOfTopics){
+    if(typeOfTopics == TypeOfTopics.cacTopicKhac){
+      return "topics/AnotherTopics/${typeOfTopics.toSortString()}";
+    }else{
+      return "topics/RegularTopics/${typeOfTopics.toSortString()}";
+    }
+  }
+
   static String userPath(String id) => 'users/$id';
   static String userNotificationPath(String id) => "users/$id";
   static String notificaionPath(String id) => 'notifications/$id';

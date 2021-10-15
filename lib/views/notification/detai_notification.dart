@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:udcks_news_app/models/message_model.dart';
 import 'package:udcks_news_app/models/notification_model.dart';
 import 'package:udcks_news_app/models/user_model.dart';
+import 'package:udcks_news_app/routers.dart';
 import 'package:udcks_news_app/services/firebase_database.dart';
 import 'package:udcks_news_app/styling.dart';
 import 'package:udcks_news_app/views/rounded_avatar.dart';
@@ -166,9 +167,15 @@ class _NotificationDetailsState extends State<NotificationDetails> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    RoundedAvatar(
-                        image: snapshot.data!.photoUrl ??
-                            "https://i.pinimg.com/originals/10/b2/f6/10b2f6d95195994fca386842dae53bb2.png"),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).pushNamed(Routes.userDetail,
+                            arguments: data.userID);
+                      },
+                      child: RoundedAvatar(
+                          image: snapshot.data!.photoUrl ??
+                              "https://i.pinimg.com/originals/10/b2/f6/10b2f6d95195994fca386842dae53bb2.png"),
+                    ),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,7 +255,7 @@ class _NotificationDetailsState extends State<NotificationDetails> {
               onPressed: () {
                 firestoreDatabase.pushMessage(
                     MessageModel(
-                        userID: widget.publisher.uid, content: inputText.text),
+                        userID: widget.currentUser, content: inputText.text),
                     notificationID);
               },
             ),

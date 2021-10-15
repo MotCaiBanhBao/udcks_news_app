@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:udcks_news_app/models/message_model.dart';
 import 'package:udcks_news_app/models/notification_model.dart';
 import 'package:udcks_news_app/models/topic_model.dart';
@@ -9,8 +10,9 @@ import 'package:udcks_news_app/services/use_cases/message_services.dart';
 import 'package:udcks_news_app/services/use_cases/notification_services.dart';
 import 'package:udcks_news_app/services/use_cases/topic_services.dart';
 import 'package:udcks_news_app/services/use_cases/user_services.dart';
-import 'package:uuid/uuid.dart';
-
+import 'package:udcks_news_app/models/utils/utils.dart';
+import 'package:udcks_news_app/models/topic_model.dart';
+import 'package:udcks_news_app/models/utils/utils.dart';
 import 'firebase_path.dart';
 import 'firestore_services.dart';
 
@@ -31,6 +33,9 @@ class FirestoreDatabase
       path: FirebasePath.notificationKEY,
       builder: (data, documentId) => NotificationModel.fromMap(data),
       id: listNotificationID,
+      sort: (a, b) {
+        return b.timeStamp.compareTo(a.timeStamp);
+      },
     );
   }
 
@@ -99,6 +104,9 @@ class FirestoreDatabase
     return _firestoreService.collectionStream(
       path: FirebasePath.messagesOfNotification(notificationId),
       builder: (data, documentId) => MessageModel.fromMap(data),
+      sort: (a, b) {
+        return a.timeStamp.compareTo(b.timeStamp);
+      },
     );
   }
 
@@ -134,6 +142,12 @@ class FirestoreDatabase
   //
 
   @override
+  Future<void> updateUser(Map<String, String> user) async {
+    await _firestoreService.set(
+        path: FirebasePath.userPath(uid!), data: user, mergeBool: true);
+  }
+
+  @override
   Stream<UserModel> getUser(String userID) => _firestoreService.documentStream(
       path: FirebasePath.userPath(userID),
       builder: (data, documentId) {
@@ -143,13 +157,20 @@ class FirestoreDatabase
   Stream<UserModel> currentUser() => _firestoreService.documentStream(
       path: FirebasePath.userPath(uid!),
       builder: (data, documentId) {
+        var user = UserModel.fromMap(data);
+
         return UserModel.fromMap(data);
       });
 
   @override
-  Future<void> reSubTopics() {
-    // TODO: implement reSubTopics
-    throw UnimplementedError();
+  Future<void> reSubTopics(List<TopicModel> topics) async {
+    final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+    _firebaseMessaging.deleteToken();
+    _firebaseMessaging.getInitialMessage();
+    _firebaseMessaging.getToken();
+    for (var topic in topics) {
+      _firebaseMessaging.subscribeToTopic(topic.topicName);
+    }
   }
 
   @override
@@ -159,10 +180,80 @@ class FirestoreDatabase
   }
 
   @override
-  Future<void> pushTopic(TopicModel topic) async {
-      await _firestoreService.set(
-      path: FirebasePath.topicPath(topic.typeOfTopic, topic.topicName) ,
-      data: topic.toMap(),
+  Future<void> pushTopic(List<TopicModel> topic) async {
+    final DocumentReference reference =
+        FirebaseFirestore.instance.doc(FirebasePath.userPath(uid!));
+
+    await reference.set({
+      "subscribedChannels": topic.map<Map<String, dynamic>>((value) {
+        return value.toMap();
+      }).toList()
+    }, SetOptions(merge: true));
+    await reSubTopics(topic);
+  }
+
+  @override
+  Stream<List<TopicModel>> getTopic(TypeOfTopics typeOfTopics) {
+    return _firestoreService.collectionStream(
+      path: FirebasePath.topicsPath(typeOfTopics),
+      builder: (data, documentId) => TopicModel.fromMap(data),
     );
+  }
+
+  @override
+  Future<Map<String, List<TopicModel>>> getAllTopic() async {
+    Map<String, List<TopicModel>> data = {};
+    var khoaKinhTeData = _firestoreService.getCollectionData(
+        path: FirebasePath.topicsPath(TypeOfTopics.khoaKinhTe),
+        builder: (data, documentID) => TopicModel.fromMap(data));
+
+    var khoaSuPham = _firestoreService.getCollectionData(
+        path: FirebasePath.topicsPath(TypeOfTopics.khoaSuPham),
+        builder: (data, documentID) => TopicModel.fromMap(data));
+
+    var khoaKiThuat = _firestoreService.getCollectionData(
+        path: FirebasePath.topicsPath(TypeOfTopics.khoaKyThuat),
+        builder: (data, documentID) => TopicModel.fromMap(data));
+
+    await khoaKinhTeData.then((value) {
+      data[TypeOfTopics.khoaKinhTe.toSortString()] = value;
+    });
+
+    await khoaSuPham.then((value) {
+      data[TypeOfTopics.khoaSuPham.toSortString()] = value;
+    });
+
+    await khoaKiThuat.then((value) {
+      data[TypeOfTopics.khoaKyThuat.toSortString()] = value;
+    });
+
+    return data;
+  }
+
+  @override
+  Future<Map<String, List<TopicModel>>> getUserTopic() async {
+    Map<String, List<TopicModel>> userTopic = {
+      TypeOfTopics.khoaKinhTe.toSortString(): [],
+      TypeOfTopics.khoaKyThuat.toSortString(): [],
+      TypeOfTopics.khoaSuPham.toSortString(): [],
+    };
+    var userData = _firestoreService.getDocumentData(
+        path: FirebasePath.userPath(uid!),
+        builder: (data, id) => UserModel.fromMap(data));
+
+    await userData.then((value) {
+      for (var element in value.subscribedChannels) {
+        if (element.typeOfTopic == TypeOfTopics.khoaKinhTe) {
+          userTopic[TypeOfTopics.khoaKinhTe.toSortString()]?.add(element);
+        }
+        if (element.typeOfTopic == TypeOfTopics.khoaKyThuat) {
+          userTopic[TypeOfTopics.khoaKyThuat.toSortString()]?.add(element);
+        } else if (element.typeOfTopic == TypeOfTopics.khoaSuPham) {
+          userTopic[TypeOfTopics.khoaSuPham.toSortString()]?.add(element);
+        }
+      }
+    });
+
+    return userTopic;
   }
 }

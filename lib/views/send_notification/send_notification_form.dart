@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:multi_select_flutter/dialog/mult_select_dialog.dart';
+import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:udcks_news_app/app_localization.dart';
 import 'package:udcks_news_app/models/notification_model.dart';
@@ -32,6 +34,19 @@ class _NotificationFormState extends State<NotificationForm> {
   late TextEditingController _readMoreController;
   late TextEditingController _contentController;
   late String _kindOfNofitication;
+
+  Map<String, List<TopicModel>> topicsSelected = {
+    TypeOfTopics.khoaKinhTe.toSortString(): [],
+    TypeOfTopics.khoaKyThuat.toSortString(): [],
+    TypeOfTopics.khoaSuPham.toSortString(): [],
+  };
+  Map<String, List<TopicModel>> allTopic = {
+    TypeOfTopics.khoaKinhTe.toSortString(): [],
+    TypeOfTopics.khoaKyThuat.toSortString(): [],
+    TypeOfTopics.khoaSuPham.toSortString(): [],
+  };
+  late FirestoreDatabase firestoreDatabase;
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +54,34 @@ class _NotificationFormState extends State<NotificationForm> {
     _readMoreController = TextEditingController(text: widget._data.url);
     _contentController = TextEditingController(text: widget._data.content);
     _kindOfNofitication = TypeOfNotification.thongBaoCuaGiaoVien.toSortString();
+  }
+
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    firestoreDatabase = Provider.of<FirestoreDatabase>(context);
+    firestoreDatabase.getAllTopic().then((value) {
+      setState(() {
+        allTopic = value;
+      });
+    });
+  }
+
+  void _showMultiSelect(BuildContext context, List<TopicModel> items,
+      List<TopicModel> initItem, TypeOfTopics typeOfTopics) async {
+    await showDialog(
+      context: context,
+      builder: (ctx) {
+        return MultiSelectDialog<TopicModel>(
+            items: items.map((e) => MultiSelectItem(e, e.topicName)).toList(),
+            initialValue: initItem,
+            listType: MultiSelectListType.CHIP,
+            onConfirm: (element) {
+              setState(() {
+                topicsSelected[typeOfTopics.toSortString()] = element;
+              });
+            });
+      },
+    );
   }
 
   @override
@@ -65,7 +108,7 @@ class _NotificationFormState extends State<NotificationForm> {
             formForKind(context),
             formForTitle(context),
             formForContent(context),
-            formForPickImage(context),
+            formForPickTopic(context),
             formForDetail(context),
           ],
         ),
@@ -92,18 +135,132 @@ class _NotificationFormState extends State<NotificationForm> {
     );
   }
 
-  Step formForPickImage(BuildContext context) {
+  Step formForPickTopic(BuildContext context) {
     return Step(
-      title: Text(AppLocalizations.of(context).translate("notiFormPickImage")),
-      content: Form(
-        key: formKeys[3],
-        child: Column(
-          children: <Widget>[
-            TextFormField(
-              decoration: const InputDecoration(border: OutlineInputBorder()),
+      title:
+          Text(AppLocalizations.of(context).translate("notiFormChooseTopics")),
+      subtitle: Text(
+          AppLocalizations.of(context).translate("notiFormChooseTopicsSub")),
+      content: Column(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(width: 1, color: AppTheme.darkGrey),
             ),
-          ],
-        ),
+            child: Column(
+              children: [
+                Container(
+                  color: Theme.of(context).primaryColor,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: const [
+                      Padding(
+                        padding: EdgeInsets.only(left: 8.0),
+                        child: Text(
+                          "Your choice",
+                          style: TextStyle(fontSize: 18),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(18),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height * 0.08,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount:
+                        topicsSelected[TypeOfTopics.khoaKyThuat.toSortString()]!
+                            .length,
+                    itemBuilder: (ctx, index) {
+                      print("CO CHAY");
+                      return Chip(
+                        label: Text(topicsSelected[
+                                TypeOfTopics.khoaKyThuat.toSortString()]![index]
+                            .topicName),
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height * 0.08,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount:
+                        topicsSelected[TypeOfTopics.khoaKinhTe.toSortString()]!
+                            .length,
+                    itemBuilder: (ctx, index) {
+                      print("CO CHAY");
+                      return Chip(
+                        label: Text(topicsSelected[
+                                TypeOfTopics.khoaKinhTe.toSortString()]![index]
+                            .topicName),
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height * 0.08,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount:
+                        topicsSelected[TypeOfTopics.khoaSuPham.toSortString()]!
+                            .length,
+                    itemBuilder: (ctx, index) {
+                      print("CO CHAY");
+                      return Chip(
+                        label: Text(topicsSelected[
+                                TypeOfTopics.khoaSuPham.toSortString()]![index]
+                            .topicName),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ListTile(
+            title: const Text("Khoa kĩ thuật"),
+            trailing: const Icon(Icons.touch_app),
+            onTap: () {
+              _showMultiSelect(
+                context,
+                allTopic[TypeOfTopics.khoaKyThuat.toSortString()]!,
+                topicsSelected[TypeOfTopics.khoaKyThuat.toSortString()]!,
+                TypeOfTopics.khoaKyThuat,
+              );
+            },
+          ),
+          ListTile(
+            title: const Text("Khoa kinh tế"),
+            trailing: const Icon(Icons.touch_app),
+            onTap: () {
+              _showMultiSelect(
+                context,
+                allTopic[TypeOfTopics.khoaKinhTe.toSortString()]!,
+                topicsSelected[TypeOfTopics.khoaKinhTe.toSortString()]!,
+                TypeOfTopics.khoaKinhTe,
+              );
+            },
+          ),
+          ListTile(
+            title: const Text("Khoa sư phạm"),
+            trailing: const Icon(Icons.touch_app),
+            onTap: () {
+              _showMultiSelect(
+                context,
+                allTopic[TypeOfTopics.khoaSuPham.toSortString()]!,
+                topicsSelected[TypeOfTopics.khoaSuPham.toSortString()]!,
+                TypeOfTopics.khoaSuPham,
+              );
+            },
+          ),
+        ],
       ),
       isActive: _currentStep >= 0,
       state: _currentStep >= 3 ? StepState.complete : StepState.disabled,
@@ -194,7 +351,7 @@ class _NotificationFormState extends State<NotificationForm> {
 
   continued(FirestoreDatabase context) {
     print(_currentStep);
-    if (formKeys[_currentStep].currentState!.validate()) {
+    if (formKeys[_currentStep].currentState?.validate() ?? true) {
       if (_currentStep < 4) {
         setState(() {
           _currentStep += 1;
@@ -241,15 +398,17 @@ class _NotificationFormState extends State<NotificationForm> {
             TextButton(
               child: const Text('Send'),
               onPressed: () {
+                List<TopicModel> subedTopic = [];
+                subedTopic.addAll(
+                    topicsSelected[TypeOfTopics.khoaKinhTe.toSortString()]!);
+                subedTopic.addAll(
+                    topicsSelected[TypeOfTopics.khoaKyThuat.toSortString()]!);
+                subedTopic.addAll(
+                    topicsSelected[TypeOfTopics.khoaSuPham.toSortString()]!);
+
                 database.pushNotification(
-                    NotificationModel(content: content, title: title), [
-                  TopicModel(
-                      topicName: "k12tt",
-                      typeOfTopic: TypeOfTopics.cacTopicKhac),
-                  TopicModel(
-                      topicName: "k11tt",
-                      typeOfTopic: TypeOfTopics.cacTopicKhac)
-                ]);
+                    NotificationModel(content: content, title: title),
+                    subedTopic);
               },
             ),
           ],

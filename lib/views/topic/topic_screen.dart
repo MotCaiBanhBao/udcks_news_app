@@ -1,5 +1,12 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:multi_select_flutter/dialog/mult_select_dialog.dart';
+import 'package:multi_select_flutter/multi_select_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:udcks_news_app/models/topic_model.dart';
+import 'package:udcks_news_app/models/utils/utils.dart';
+import 'package:udcks_news_app/services/firebase_database.dart';
 import 'package:udcks_news_app/styling.dart';
 
 class TopicScreen extends StatefulWidget {
@@ -10,244 +17,269 @@ class TopicScreen extends StatefulWidget {
 }
 
 class _ChoiceChipsState extends State<TopicScreen> {
-  String _isSelected = "";
-  List<TopicModel> _tags = [
-    TopicModel(topicName: "K12", typeOfTopic: TypeOfTopics.khoaKyThuat)
-  ];
-  List<TopicModel> _tagsToSelect = [
-    TopicModel(topicName: "K12", typeOfTopic: TypeOfTopics.khoaKyThuat)
-  ];
-  TextEditingController _searchTextEditingController = TextEditingController();
-  String get _searchText => _searchTextEditingController.text.trim();
+  Map<String, List<TopicModel>> topicsSelected = {
+    TypeOfTopics.khoaKinhTe.toSortString(): [],
+    TypeOfTopics.khoaKyThuat.toSortString(): [],
+    TypeOfTopics.khoaSuPham.toSortString(): [],
+  };
+  Map<String, List<TopicModel>> allTopic = {
+    TypeOfTopics.khoaKinhTe.toSortString(): [],
+    TypeOfTopics.khoaKyThuat.toSortString(): [],
+    TypeOfTopics.khoaSuPham.toSortString(): [],
+  };
+  late FirestoreDatabase firestoreDatabase;
 
-  refreshState(VoidCallback fn) {
-    if (mounted) setState(fn);
+  Future<void> initData(FirestoreDatabase firestoreDatabase) async {
+    await firestoreDatabase.getUserTopic().then((value) {
+      topicsSelected = value;
+    });
+    await firestoreDatabase.getAllTopic().then((value) {
+      allTopic = value;
+    });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _searchTextEditingController.addListener(() => refreshState(() {}));
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _searchTextEditingController.dispose();
-  }
-
-  List<TopicModel> _filterSearchResultList() {
-    if (_searchText.isEmpty) return _tagsToSelect;
-
-    List<TopicModel> _tempList = [];
-    for (int index = 0; index < _tagsToSelect.length; index++) {
-      TopicModel tagModel = _tagsToSelect[index];
-      if (tagModel.topicName
-          .toLowerCase()
-          .trim()
-          .contains(_searchText.toLowerCase())) {
-        _tempList.add(tagModel);
-      }
-    }
-
-    return _tempList;
-  }
-
-  _removeTag(tagModel) async {
-    if (_tags.contains(tagModel)) {
-      setState(() {
-        _tags.remove(tagModel);
-      });
-    }
-  }
-
-  Widget _buildSuggestionWidget() {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      if (_filterSearchResultList().length != _tags.length) Text('Suggestions'),
-      Wrap(
-        alignment: WrapAlignment.start,
-        children: _filterSearchResultList()
-            .where((tagModel) => !_tags.contains(tagModel))
-            .map((tagModel) => tagChip(
-                  tagModel: tagModel,
-                  onTap: () => _addTags(tagModel),
-                  action: 'Add',
-                ))
-            .toList(),
+  showLoaderDialog(BuildContext context) async {
+    AlertDialog alert = AlertDialog(
+      content: Row(
+        children: [
+          const CircularProgressIndicator(),
+          Container(
+              margin: EdgeInsets.only(left: 7), child: Text("Loading...")),
+        ],
       ),
-    ]);
+    );
+    await showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
   }
 
-  _addTags(tagModel) async {
-    if (!_tags.contains(tagModel)) {
-      setState(() {
-        _tags.add(tagModel);
-      });
-    }
-  }
-
-  _displayTagWidget() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: _filterSearchResultList().isNotEmpty
-          ? _buildSuggestionWidget()
-          : Text('No Labels added'),
+  showSusscesDialog(BuildContext context, String text) async {
+    AlertDialog alert = AlertDialog(
+      content: Row(
+        children: [
+          Container(margin: const EdgeInsets.only(left: 7), child: Text(text)),
+        ],
+      ),
+      actions: [
+        FlatButton(
+          child: Text('Ok'),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ],
+    );
+    await showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
     );
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    firestoreDatabase = Provider.of<FirestoreDatabase>(context);
+
+    firestoreDatabase.getUserTopic().then((value) {
+      setState(() {
+        topicsSelected = value;
+      });
+    });
+    firestoreDatabase.getAllTopic().then((value) {
+      setState(() {
+        allTopic = value;
+      });
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    void _showMultiSelect(BuildContext context, List<TopicModel> items,
+        List<TopicModel> initItem, TypeOfTopics typeOfTopics) async {
+      await showDialog(
+        context: context,
+        builder: (ctx) {
+          return MultiSelectDialog<TopicModel>(
+              items: items.map((e) => MultiSelectItem(e, e.topicName)).toList(),
+              initialValue: initItem,
+              listType: MultiSelectListType.CHIP,
+              onConfirm: (element) {
+                setState(() {
+                  topicsSelected[typeOfTopics.toSortString()] = element;
+                });
+              });
+        },
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppTheme.notWhite,
         shadowColor: AppTheme.notWhite,
         title: const Text(
-          "Topics",
+          "Choose your topics",
           style: AppTheme.headline,
         ),
         actions: [
-          Icon(
-            Icons.save,
-            color: AppTheme.grey,
-          )
+          IconButton(
+            icon: const Icon(
+              Icons.save,
+              color: AppTheme.grey,
+            ),
+            onPressed: () {
+              List<TopicModel> subedTopic =
+                  topicsSelected[TypeOfTopics.khoaKinhTe.toSortString()]!;
+              subedTopic.addAll(
+                  topicsSelected[TypeOfTopics.khoaKyThuat.toSortString()]!);
+              subedTopic.addAll(
+                  topicsSelected[TypeOfTopics.khoaSuPham.toSortString()]!);
+
+              firestoreDatabase
+                  .pushTopic(subedTopic)
+                  .whenComplete(() => showSusscesDialog(context, "SUCCESS"));
+            },
+          ),
         ],
       ),
-      body: _tagIcon(),
-    );
-  }
-
-  Widget _tagIcon() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          Icons.local_offer_outlined,
-          color: Colors.deepOrangeAccent,
-          size: 25.0,
-        ),
-        _tagsWidget(),
-      ],
-    );
-  }
-
-  Widget _tagsWidget() {
-    return Flexible(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Text(
-              'Tags',
-              style: TextStyle(
-                fontSize: 20.0,
-                color: Colors.black,
-              ),
-            ),
-          ),
-          _tags.isNotEmpty
-              ? Column(children: [
-                  Wrap(
-                    alignment: WrapAlignment.start,
-                    children: _tags
-                        .map((tagModel) => tagChip(
-                              tagModel: tagModel,
-                              onTap: () => _removeTag(tagModel),
-                              action: 'Remove',
-                            ))
-                        .toSet()
-                        .toList(),
+      body: Padding(
+        padding: const EdgeInsets.all(10),
+        child: SafeArea(
+          child: SizedBox(
+              height: double.infinity,
+              child: Column(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(width: 1, color: AppTheme.darkGrey),
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          color: Theme.of(context).primaryColor,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: const [
+                              Padding(
+                                padding: EdgeInsets.only(left: 8.0),
+                                child: Text(
+                                  "Your choice",
+                                  style: TextStyle(fontSize: 18),
+                                ),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.all(18),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.height * 0.08,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: topicsSelected[
+                                    TypeOfTopics.khoaKyThuat.toSortString()]!
+                                .length,
+                            itemBuilder: (ctx, index) {
+                              print("CO CHAY");
+                              return Chip(
+                                label: Text(topicsSelected[TypeOfTopics
+                                        .khoaKyThuat
+                                        .toSortString()]![index]
+                                    .topicName),
+                              );
+                            },
+                          ),
+                        ),
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.height * 0.08,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: topicsSelected[
+                                    TypeOfTopics.khoaKinhTe.toSortString()]!
+                                .length,
+                            itemBuilder: (ctx, index) {
+                              print("CO CHAY");
+                              return Chip(
+                                label: Text(topicsSelected[TypeOfTopics
+                                        .khoaKinhTe
+                                        .toSortString()]![index]
+                                    .topicName),
+                              );
+                            },
+                          ),
+                        ),
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.height * 0.08,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: topicsSelected[
+                                    TypeOfTopics.khoaSuPham.toSortString()]!
+                                .length,
+                            itemBuilder: (ctx, index) {
+                              print("CO CHAY");
+                              return Chip(
+                                label: Text(topicsSelected[TypeOfTopics
+                                        .khoaSuPham
+                                        .toSortString()]![index]
+                                    .topicName),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ])
-              : Container(),
-          _buildSearchFieldWidget(),
-          _displayTagWidget(),
-        ],
+                  ListTile(
+                    title: const Text("Khoa kĩ thuật"),
+                    trailing: const Icon(Icons.touch_app),
+                    onTap: () {
+                      _showMultiSelect(
+                        context,
+                        allTopic[TypeOfTopics.khoaKyThuat.toSortString()]!,
+                        topicsSelected[
+                            TypeOfTopics.khoaKyThuat.toSortString()]!,
+                        TypeOfTopics.khoaKyThuat,
+                      );
+                    },
+                  ),
+                  ListTile(
+                    title: const Text("Khoa kinh tế"),
+                    trailing: const Icon(Icons.touch_app),
+                    onTap: () {
+                      _showMultiSelect(
+                        context,
+                        allTopic[TypeOfTopics.khoaKinhTe.toSortString()]!,
+                        topicsSelected[TypeOfTopics.khoaKinhTe.toSortString()]!,
+                        TypeOfTopics.khoaKinhTe,
+                      );
+                    },
+                  ),
+                  ListTile(
+                    title: const Text("Khoa sư phạm"),
+                    trailing: const Icon(Icons.touch_app),
+                    onTap: () {
+                      _showMultiSelect(
+                        context,
+                        allTopic[TypeOfTopics.khoaSuPham.toSortString()]!,
+                        topicsSelected[TypeOfTopics.khoaSuPham.toSortString()]!,
+                        TypeOfTopics.khoaSuPham,
+                      );
+                    },
+                  ),
+                ],
+              )),
+        ),
       ),
-    );
-  }
-
-  Widget tagChip({
-    tagModel,
-    onTap,
-    action,
-  }) {
-    return InkWell(
-        onTap: onTap,
-        child: Stack(
-          children: [
-            Container(
-              padding: EdgeInsets.symmetric(
-                vertical: 5.0,
-                horizontal: 5.0,
-              ),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 10.0,
-                  vertical: 10.0,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.deepOrangeAccent,
-                  borderRadius: BorderRadius.circular(100.0),
-                ),
-                child: Text(
-                  '${tagModel.title}',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15.0,
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              right: 0,
-              child: CircleAvatar(
-                backgroundColor: Colors.orange.shade600,
-                radius: 8.0,
-                child: Icon(
-                  Icons.clear,
-                  size: 10.0,
-                  color: Colors.white,
-                ),
-              ),
-            )
-          ],
-        ));
-  }
-
-  Widget _buildSearchFieldWidget() {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            controller: _searchTextEditingController,
-            decoration: const InputDecoration.collapsed(
-              hintText: 'Search Topic',
-              hintStyle: TextStyle(
-                color: Colors.grey,
-              ),
-            ),
-            style: const TextStyle(
-              fontSize: 16.0,
-            ),
-            textInputAction: TextInputAction.search,
-          ),
-        ),
-        _searchText.isNotEmpty
-            ? InkWell(
-                child: Icon(
-                  Icons.clear,
-                  color: Colors.grey.shade700,
-                ),
-                onTap: () => _searchTextEditingController.clear(),
-              )
-            : Icon(
-                Icons.search,
-                color: Colors.grey.shade700,
-              ),
-        Container(),
-      ],
     );
   }
 }

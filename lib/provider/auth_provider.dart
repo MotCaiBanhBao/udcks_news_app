@@ -30,6 +30,7 @@ class AuthProvider extends ChangeNotifier {
   Status get status => _status;
 
   Stream<UserModel> get user => _auth.authStateChanges().map(_userFromFirebase);
+  
   String? get id => _auth.currentUser?.uid;
 
   AuthProvider() {

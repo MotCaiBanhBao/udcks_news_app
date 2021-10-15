@@ -79,9 +79,7 @@ class FCMServices {
 
     FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
     firebaseMessaging.getToken();
-
-    firebaseMessaging.subscribeToTopic("k12tt");
-    firebaseMessaging.subscribeToTopic("k11tt");
+    
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()

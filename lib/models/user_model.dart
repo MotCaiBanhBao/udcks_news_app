@@ -30,6 +30,16 @@ class UserModel {
         "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Circle-icons-profile.svg/2048px-Circle-icons-profile.svg.png";
   }
 
+  String get getAllTopic {
+    String allTopic = "";
+
+    for (var element in subscribedChannels) {
+      allTopic = allTopic + element.topicName + ", ";
+    }
+    print(allTopic);
+    return allTopic;
+  }
+
   factory UserModel.fromMap(Map<String, dynamic> data) {
     List<TopicModel> sub = [];
     List<dynamic> subscribedChannelsRaw = data['subscribedChannels'];

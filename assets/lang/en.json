@@ -44,6 +44,8 @@
   "notificationFormLeading": "Form",
 
   "notiFormKindOfNoti": "Kind of notification:",
+  "notiFormChooseTopics": "Choose topics",
+  "notiFormChooseTopicsSub": "Choose what topics to send",
   "notiFormKindOfNotiSub": "Choose what kind of your notification:",
   "notiFormTitle": "Title:",
   "notiFormTitleSub": "This is the title for your announcement, it is best to write a summary of the content of the announcement",

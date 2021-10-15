@@ -24,6 +24,10 @@ class NotificationScreen extends StatelessWidget {
                 stream: firestoreDatabase
                     .loadNotificationOfUser(snapshot.data as UserModel),
                 builder: (context, listNotiStream) {
+                  if (listNotiStream.connectionState ==
+                      ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  }
                   if (listNotiStream.hasData) {
                     List<NotificationModel> notifications =
                         listNotiStream.data as List<NotificationModel>;

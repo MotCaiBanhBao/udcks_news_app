@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:udcks_news_app/models/topic_model.dart';
 import 'package:udcks_news_app/models/user_model.dart';
 
 /*
@@ -43,10 +45,10 @@ class FirestoreService {
 
   Stream<List<T>> collectionStream<T>({
     required String path,
-    required T builder(Map<String, dynamic> data, String documentID),
-    Query queryBuilder(Query query)?,
+    required T Function(Map<String, dynamic> data, String documentID) builder,
+    Query Function(Query query)? queryBuilder,
     List<String?>? id,
-    int sort(T lhs, T rhs)?,
+    int Function(T lhs, T rhs)? sort,
   }) {
     Query query = FirebaseFirestore.instance.collection(path);
     if (id != null) {
@@ -54,6 +56,7 @@ class FirestoreService {
     }
 
     if (queryBuilder != null) {
+      
       query = queryBuilder(query);
     }
 
@@ -71,9 +74,26 @@ class FirestoreService {
     });
   }
 
+  Future<List<T>> getCollectionData<T>({
+    required String path,
+    required T Function(Map<String, dynamic> data, String documentID) builder,
+  }) async {
+    final query = FirebaseFirestore.instance.collection(path).get();
+    return query.then(
+        (value) => value.docs.map((e) => builder(e.data(), e.id)).toList());
+  }
+
+  Future<T> getDocumentData<T>({
+    required String path,
+    required T Function(Map<String, dynamic> data, String documentID) builder,
+  }) async {
+    final query = FirebaseFirestore.instance.doc(path).get();
+    return query.then((value) => builder(value.data() ?? {}, value.id));
+  }
+
   Stream<T> documentStream<T>({
     required String path,
-    required T builder(Map<String, dynamic> data, String documentID),
+    required T Function(Map<String, dynamic> data, String documentID) builder,
   }) {
     final DocumentReference reference = FirebaseFirestore.instance.doc(path);
     final Stream<DocumentSnapshot> snapshots = reference.snapshots();
